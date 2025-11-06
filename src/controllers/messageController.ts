@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import {Request, Response, RequestHandler } from 'express';
 import Message from '../models/Message';
 import Chat from '../models/Chat';
 import { io } from '../server';
@@ -11,9 +11,10 @@ import { AuthRequest } from '../types/express.d';
  * @route GET /api/messages/:chatId
  * @access Private
  */
-export const allMessages = async (req: AuthRequest, res: Response) => {
+export const allMessages: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    const authReq = req as AuthRequest;
     try {
-        const { chatId } = req.params;
+        const { chatId } = authReq.params;
 
         // Fetch messages for the chat, sorted by creation time
         const messages = await Message.find({ chatId })
@@ -35,12 +36,14 @@ export const allMessages = async (req: AuthRequest, res: Response) => {
  * @access Private
  * @body { chatId, content }
  */
-export const sendMessage = async (req: AuthRequest, res: Response) => {
-    const { chatId, content } = req.body;
-    const senderId = req.user?.id;
+export const sendMessage: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    const authReq = req as AuthRequest;
+    const { chatId, content } = authReq.body;
+    const senderId = authReq.user!.id;
 
     if (!chatId || !content || !senderId) {
-        return res.status(400).json({ message: 'Invalid data passed into request.' });
+        res.status(400).json({ message: 'Invalid data passed into request.' });
+        return;
     }
 
     const newMessage = {
@@ -71,17 +74,15 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
 
             chat.participants.forEach(participantId => {
                 const participantIdStr = participantId.toString();
+                const unreadCounts = chat.unreadCounts as Map<string, number>;
 
                 // If the participant is NOT the sender, increment their count
                 if (participantIdStr !== senderIdStr) {
-                    const currentCount = chat.unreadCounts.get(participantIdStr) || 0;
-                    chat.unreadCounts.set(participantIdStr, currentCount + 1);
-
-                    // TODO: We could emit a socket event here to force the receiver's ChatList to update,
-                    // but we will handle the ChatList update on the frontend from the 'message received' event.
+                    const currentCount = unreadCounts.get(participantIdStr) || 0;
+                    unreadCounts.set(participantIdStr, currentCount + 1);
                 } else {
                     // Always clear the sender's unread count when they send a message
-                    chat.unreadCounts.set(participantIdStr, 0);
+                    unreadCounts.set(participantIdStr, 0);
                 }
             });
 
@@ -90,9 +91,6 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
 
         // Send the populated message object back to the client
         res.status(201).json(message);
-
-         // IMPORTANT: The real-time broadcast via Socket.IO happens immediately after this successful DB operation.
-        // This part will be handled in the Socket.IO setup (Step 14).
 
     } catch (error) {
         console.error('Error sending message:', error)
@@ -106,12 +104,14 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
  * @access Private
  * @body { chatId }
  */
-export const markMessagesAsRead = async (req: AuthRequest, res: Response) => {
-    const { chatId } = req.body;
-    const currentUserId = req.user?.id;
+export const markMessagesAsRead: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    const authReq = req as AuthRequest;
+    const { chatId } = authReq.body;
+    const currentUserId = authReq.user!.id;
 
     if (!chatId || !currentUserId) {
-        return res.status(400).json({ message: 'Chat ID required.' });
+        res.status(400).json({ message: 'Chat ID required.' });
+        return;
     }
 
     try {
@@ -128,7 +128,8 @@ export const markMessagesAsRead = async (req: AuthRequest, res: Response) => {
         // Clear Unread Count: Clear the count for the current user in the Chat document
         const chat =  await Chat.findById(chatId);
         if (chat) {
-            chat.unreadCounts.set(currentUserId, 0);
+            const unreadCounts = chat.unreadCounts as Map<string, number>;
+            unreadCounts.set(currentUserId, 0);
             await chat.save();
         }
 

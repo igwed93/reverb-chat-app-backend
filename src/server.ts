@@ -55,7 +55,7 @@ app.use('/api/chats', chatRoutes);
 app.use('/api/messages', messageRoutes);
 
 // Basic Route
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (_req: Request, res: Response) => {
     res.status(200).json({ message: 'Reverb API is running!' });
 });
 

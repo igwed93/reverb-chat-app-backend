@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import Chat from '../models/Chat';
 import User from '../models/User';
 import { IChat } from '../types/models';
@@ -10,24 +10,27 @@ import mongoose from 'mongoose';
  * @desc Access a chat (create if it doesn't exist)
  * @route POST /api/chats
  * @access Private
- * * @body { userId: string } - ID of the user to chat with
+ * @body { userId: string } - ID of the user to chat with
  */
-export const accessChat = async (req: AuthRequest, res: Response) => {
+export const accessChat = async (req: AuthRequest, res: Response): Promise<void> => {
     const { userId } = req.body;  // The ID of the target user
-    const currentUserId = req.user.id; // The ID of the logged-in user
+    const currentUserId = req.user!.id; // The ID of the logged-in user
 
     if (!userId) {
-        console.log('Target User ID not sent with request');
-        return res.status(400).json({ message: 'Target User ID required.' });
+        //console.log('Target User ID not sent with request');
+        res.status(400).json({ message: 'Target User ID required.' });
+        return;
     }
 
     if (!currentUserId) {
-        return res.status(401).json({ message: 'Not authorized, user missing.' });
+        res.status(401).json({ message: 'Not authorized, user missing.' });
+        return;
     }
 
     // Check if current user is trying to chat with themselves
     if (currentUserId.toString() === userId.toString()) {
-        return res.status(400).json({ message: 'Cannot start a chat with yourself.' });
+        res.status(400).json({ message: 'Cannot start a chat with yourself.' });
+        return;
     }
 
     try {
@@ -42,7 +45,8 @@ export const accessChat = async (req: AuthRequest, res: Response) => {
 
         if (chat) {
             // Chat found, return it
-            return res.status(200).send(chat);
+            res.status(200).send(chat);
+            return;
         }
 
         // 2. Chat not found, create a new one
@@ -75,11 +79,12 @@ export const accessChat = async (req: AuthRequest, res: Response) => {
  * @route GET /api/chats
  * @access Private
  */
-export const fetchChats = async (req: AuthRequest, res: Response) => {
-    const currentUserId = req.user?.id;
+export const fetchChats = async (req: AuthRequest, res: Response): Promise<void> => {
+    const currentUserId = req.user!.id;
 
     if (!currentUserId) {
-        return res.status(401).json({ message: 'Not authorized, user missing.' });
+        res.status(401).json({ message: 'Not authorized, user missing.' });
+        return;
     }
 
     try {
@@ -105,12 +110,13 @@ export const fetchChats = async (req: AuthRequest, res: Response) => {
  * @access Private
  * @body { name: string, users: string[] }
  */
-export const createGroupChat = async (req: AuthRequest, res: Response) => {
+export const createGroupChat = async (req: AuthRequest, res: Response): Promise<void> => {
     const { name, users } = req.body;
-    const currentUserId = req.user.id;
+    const currentUserId = req.user!.id;
 
     if (!name || !users || users.length < 2) {
-        return res.status(400).json({ message: 'Group requires a name and at least 3 members (including yourself).'});
+        res.status(400).json({ message: 'Group requires a name and at least 3 members (including yourself).' });
+        return;
     }
 
     // Convert string IDs to Mongoose ObjectIds

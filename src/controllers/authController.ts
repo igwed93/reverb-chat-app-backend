@@ -21,21 +21,23 @@ const generateToken = (id: string): string => {
  * @route POST /api/auth/register
  * @access Public
  */
-export const registerUser = async (req: Request, res: Response) => {
+export const registerUser = async (req: Request, res: Response): Promise<void> => {
     const username = req.body.username?.trim(); 
     const email = req.body.email?.trim();
     const password = req.body.password?.trim();
 
     console.log({ username: username, email: email, password: password });
     if (!username || !email || !password) {
-        return res.status(400).json({ message: 'Please enter all fields.' });
+        res.status(400).json({ message: 'Please enter all fields.' });
+        return;
     }
 
     try {
         // 1. Check if user already exists
         let user: (IUser & { _id: any }) | null = await User.findOne({ email });
         if (user) {
-            return res.status(400).json({ message: 'User already exists.' });
+            res.status(400).json({ message: 'User already exists.' });
+            return;
         }
 
         // 2. Hash password
@@ -71,11 +73,12 @@ export const registerUser = async (req: Request, res: Response) => {
  * @route POST /api/auth/login
  * @access Public
  */
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res.status(400).json({ message: 'Please enter all fields.' });
+        res.status(400).json({ message: 'Please enter all fields.' });
+        return;
     }
 
     try {
@@ -95,13 +98,14 @@ export const loginUser = async (req: Request, res: Response) => {
                 const userResponse = user.toObject(); // Get a plain JS object
                 delete userResponse.password; // Remove the property before sending
 
-                return res.json({
+                res.json({
                     _id: userResponse._id,
                     username: userResponse.username,
                     email: userResponse.email,
                     avatarUrl: userResponse.avatarUrl,
                     token: generateToken(userResponse._id.toString()),
                 });
+                return;
             }
         }
 

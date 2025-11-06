@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import User from '../models/User';
 import { AuthRequest } from '../types/express.d';
 
@@ -7,11 +7,12 @@ import { AuthRequest } from '../types/express.d';
  * @route GET /api/users/profile
  * @access Private
  */
-export const getUserProfile = async (req: AuthRequest, res: Response) => {
+export const getUserProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.id;
         if(!userId) {
-            return res.status(401).json({ message: 'User ID missing from token' });
+            res.status(401).json({ message: 'User ID missing from token' });
+            return;
         }
 
         const user = await User.findById(userId).select('-password -chats');
@@ -53,7 +54,7 @@ export const searchUsers = async (req: AuthRequest, res: Response) => {
         : {};
     
     // Exclude the currently logged-in user from the search results
-    const users = await User.find({ ...keyword, _id: { $ne: req.user.id } }).select('username email avatarUrl status');
+    const users = await User.find({ ...keyword, _id: { $ne: req.user!.id } }).select('username email avatarUrl status');
 
     res.send(users);
 }
@@ -64,7 +65,7 @@ export const searchUsers = async (req: AuthRequest, res: Response) => {
  * @access Private
  */
 export const logoutUser = async (req: AuthRequest, res: Response) => {
-    const userId = req.user.id;
+    const userId = req.user!.id;
     try {
         // Crucial: Select the password hash to prevent accidental deletion during save
         const user = await User.findById(userId).select('+password'); 
@@ -88,14 +89,15 @@ export const logoutUser = async (req: AuthRequest, res: Response) => {
  * @access Private
  * @body { avatarUrl: string } (Actual implementation uses multipart/form-data)
  */
-export const updateUserAvatar = async (req: AuthRequest, res: Response) => {
+export const updateUserAvatar = async (req: AuthRequest, res: Response): Promise<void> => {
     // NOTE: this should handle file upload via Multer first.
     // For now, we assume the frontend sends a URL (e.g., a temporary pre-signed URL).
     const { avatarUrl } = req.body;
-    const userId = req.user.id;
+    const userId = req.user!.id;
 
     if (!avatarUrl) {
-        return res.status(400).json({ message: 'Avatar URL is required.' });
+        res.status(400).json({ message: 'Avatar URL is required.' });
+        return;
     }
 
     try {

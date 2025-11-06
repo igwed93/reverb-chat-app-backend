@@ -11,6 +11,7 @@
     "target": "ES2020",
     // For nodejs:
     "lib": ["ES2020"],
+    "typeRoots": ["./src/types", "./node_modules/@types"],
     "types": ["node"],
     // and npm install -D @types/node
 

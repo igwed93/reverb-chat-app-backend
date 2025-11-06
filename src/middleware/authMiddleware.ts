@@ -2,12 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import { IUser } from '../types/models';
-import { AuthRequest } from '../types/express.d';
+//import { AuthRequest } from '../types/express.d';
 
 /**
  * Middleware to protect routes by verifying a JWT tokem in the request header.
  */
-export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const protect = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     let token: string | undefined;
 
     // Check for token in the 'Authorization' header
@@ -17,7 +17,8 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
             token = req.headers.authorization.split(' ')[1];
 
             if (!token) {
-                return res.status(401).json({ message: 'Not authorized, no token.' });
+                res.status(401).json({ message: 'Not authorized, no token.' });
+                return;
             }
 
             // Verify token
@@ -31,13 +32,14 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
             const user = (await User.findById(decoded.id).select('-password')) as IUser; // Exclude password
 
             if (!user) {
-                return res.status(401).json({ message: 'Not authorized, user not found.' });
+                res.status(401).json({ message: 'Not authorized, user not found.' });
+                return;
             }
 
             // Attach user ID to request object
             req.user = {
                 id: user._id.toString(),
-                name: user.username,
+                username: user.username,
                 email: user.email,
             };
 
@@ -47,6 +49,7 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
             res.status(401).json({ message: 'Not authorized, token failed.' });
         }
     } else {
-        return res.status(401).json({ message: 'Not authorized, no token.' });
+        res.status(401).json({ message: 'Not authorized, no token.' });
+        return;
     }
 };
