@@ -13,6 +13,7 @@ import chatRoutes from './routes/chatRoutes';
 import messageRoutes from './routes/messageRoutes';
 import Chat from './models/Chat';
 import session from 'express-session';
+import MongoStore from 'connect-mongo';
 import passport from 'passport';
 import './config/passport';
 
@@ -32,9 +33,13 @@ app.use(express.json());  // Body parser for JSON requests
 
 // Session Middleware Setup
 app.use(session({
-    secret: process.env.SESSION_SECRET!,
+    secret: process.env.SESSION_SECRET || 'fallbacksecret',
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI!, // same as your DB connection string
+      collectionName: 'sessions',
+    }),
     cookie: { secure: process.env.NODE_ENV === 'production', maxAge: 1000 * 60 * 60 * 24 * 30 } // 30 days
 }));
 
