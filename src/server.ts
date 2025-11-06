@@ -23,7 +23,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-    origin: 'https://reverb-app-frontend.vercel.app/', // Next.js frontend URL
+    origin: 'https://reverb-app-frontend.vercel.app', // Next.js frontend URL
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 }));
@@ -68,7 +68,7 @@ const onlineUsers = new Map<string, string>();
 export const io = new SocketIOServer(server, {
     pingTimeout: 60000, // Disconnects after 60s of inactivity
     cors: {
-        origin: 'https://reverb-app-frontend.vercel.app/', // Next.js frontend URL
+        origin: 'https://reverb-app-frontend.vercel.app', // Next.js frontend URL
         methods: ['GET', 'POST']
     }
 });
@@ -149,7 +149,7 @@ const startServer = async () => {
 
     // Start Express/Socket.IO Server
     server.listen(PORT, () => {
-        console.log(`⚡️ Reverb Server is running on http://localhost:${PORT}`);
+        console.log(`⚡️ Reverb Server is running on ${process.env.BACKEND_URL || 'http://localhost'}:${PORT}`);
     });
 };
 
