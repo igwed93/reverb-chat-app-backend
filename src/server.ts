@@ -23,7 +23,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:3000', // Next.js frontend URL
+    origin: 'https://reverb-app-frontend.vercel.app/', // Next.js frontend URL
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 }));
@@ -68,7 +68,7 @@ const onlineUsers = new Map<string, string>();
 export const io = new SocketIOServer(server, {
     pingTimeout: 60000, // Disconnects after 60s of inactivity
     cors: {
-        origin: 'http://localhost:3000', // Next.js frontend URL
+        origin: 'https://reverb-app-frontend.vercel.app/', // Next.js frontend URL
         methods: ['GET', 'POST']
     }
 });
