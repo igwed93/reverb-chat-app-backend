@@ -37,7 +37,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI!, // same as your DB connection string
+      mongoUrl: process.env.MONGODB_URI!, // same as your DB connection string
       collectionName: 'sessions',
     }),
     cookie: { secure: process.env.NODE_ENV === 'production', maxAge: 1000 * 60 * 60 * 24 * 30 } // 30 days
