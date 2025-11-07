@@ -42,7 +42,7 @@ passport_1.default.use(new passport_google_oauth20_1.Strategy({
         done(err, undefined);
     }
 }));
-// Configur GitHub Strategy
+// Configure GitHub Strategy
 passport_1.default.use(new passport_github2_1.Strategy({
     clientID: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,

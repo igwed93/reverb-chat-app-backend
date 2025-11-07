@@ -1,5 +1,11 @@
 import { Router } from 'express';
-import { registerUser, loginUser } from '../controllers/authController';
+import { 
+    registerUser,
+    loginUser,
+    forgotPassword,
+    verifyOtp,
+    resetPassword
+} from '../controllers/authController';
 import passport from 'passport';
 import jwt from 'jsonwebtoken'; // For token generation after social login
 
@@ -8,6 +14,11 @@ const router = Router();
 // Public Routes
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+
+// Forgot Password Flow Routes
+router.post('/forgot-password', forgotPassword);
+router.post('/verify-otp', verifyOtp);
+router.post('/reset-password', resetPassword);
 
 
 // --- Social Auth Routes ---

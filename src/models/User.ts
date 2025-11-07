@@ -39,8 +39,23 @@ const userSchema = new Schema<IUser>(
         ref: 'Chat',
       },
     ],
+    resetPasswordToken: {
+      type: String,
+      required: false, // Optional, as it only exists during a reset flow
+      select: false, // Security: Do not include by default in queries
+    },
+    resetPasswordExpires: {
+      type: Date,
+      required: false,
+    },
   },
   { timestamps: true } // Adds createdAt and updatedAt automatically
+);
+
+// --- Add TTL Index for Security and Cleanup ---
+userSchema.index(
+    { resetPasswordExpires: 1 }, // Index on the expiration field
+    { expireAfterSeconds: 0 }    // delete the document after the expiration time passes
 );
 
 // --- Create and export the User model ---

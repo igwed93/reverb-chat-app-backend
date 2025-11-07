@@ -15,6 +15,8 @@ export interface IUser extends Document {
     groupRoles: IGroupRole[];
     createdAt: Date;
     updatedAt: Date;
+    resetPasswordToken?: string | null;
+    resetPasswordExpires?: Date | null;
 }
 export interface IMessage extends Document {
     chatId: Types.ObjectId;

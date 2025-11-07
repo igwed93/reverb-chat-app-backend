@@ -11,6 +11,10 @@ const router = (0, express_1.Router)();
 // Public Routes
 router.post('/register', authController_1.registerUser);
 router.post('/login', authController_1.loginUser);
+// Forgot Password Flow Routes
+router.post('/forgot-password', authController_1.forgotPassword);
+router.post('/verify-otp', authController_1.verifyOtp);
+router.post('/reset-password', authController_1.resetPassword);
 // --- Social Auth Routes ---
 // Helper function to handle the redirect after successful social auth
 const socialAuthRedirect = (req, res) => {

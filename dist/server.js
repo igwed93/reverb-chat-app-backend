@@ -17,6 +17,7 @@ const chatRoutes_1 = __importDefault(require("./routes/chatRoutes"));
 const messageRoutes_1 = __importDefault(require("./routes/messageRoutes"));
 const Chat_1 = __importDefault(require("./models/Chat"));
 const express_session_1 = __importDefault(require("express-session"));
+const connect_mongo_1 = __importDefault(require("connect-mongo"));
 const passport_1 = __importDefault(require("passport"));
 require("./config/passport");
 const app = (0, express_1.default)();
@@ -24,16 +25,20 @@ const server = http_1.default.createServer(app);
 const PORT = process.env.PORT || 5000;
 // Middleware
 app.use((0, cors_1.default)({
-    origin: 'http://localhost:3000', // Next.js frontend URL
+    origin: 'https://reverb-app-frontend.vercel.app', // Next.js frontend URL
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 }));
 app.use(express_1.default.json()); // Body parser for JSON requests
 // Session Middleware Setup
 app.use((0, express_session_1.default)({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || 'fallbacksecret',
     resave: false,
     saveUninitialized: false,
+    store: connect_mongo_1.default.create({
+        mongoUrl: process.env.MONGODB_URI, // same as your DB connection string
+        collectionName: 'sessions',
+    }),
     cookie: { secure: process.env.NODE_ENV === 'production', maxAge: 1000 * 60 * 60 * 24 * 30 } // 30 days
 }));
 // Passport Initialization
@@ -58,7 +63,7 @@ const onlineUsers = new Map();
 exports.io = new socket_io_1.Server(server, {
     pingTimeout: 60000, // Disconnects after 60s of inactivity
     cors: {
-        origin: 'http://localhost:3000', // Next.js frontend URL
+        origin: 'https://reverb-app-frontend.vercel.app', // Next.js frontend URL
         methods: ['GET', 'POST']
     }
 });
@@ -123,7 +128,7 @@ const startServer = async () => {
     await (0, db_1.default)();
     // Start Express/Socket.IO Server
     server.listen(PORT, () => {
-        console.log(`⚡️ Reverb Server is running on http://localhost:${PORT}`);
+        console.log(`⚡️ Reverb Server is running on ${process.env.BACKEND_URL || 'http://localhost'}:${PORT}`);
     });
 };
 startServer(); // Start the server

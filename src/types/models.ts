@@ -19,6 +19,8 @@ export interface IUser extends Document {
     groupRoles: IGroupRole[];
     createdAt: Date;
     updatedAt: Date;
+    resetPasswordToken?: string | null; // Stores the OTP/Token
+    resetPasswordExpires?: Date | null; // Expiration time for the OTP
 }
 
 
