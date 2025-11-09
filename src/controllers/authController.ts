@@ -28,8 +28,6 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
     const password = req.body.password?.trim();
     const confirmPassword = req.body.confirmPassword?.trim();
 
-    console.log({ username, email, password, confirmPassword });
-
     if (!username || !email || !password || !confirmPassword) {
         res.status(400).json({ message: 'Please enter all fields.' });
         return;
